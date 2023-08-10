@@ -21,7 +21,7 @@ public:
      *
      * @param G
      */
-    BMatcher(const Graph &G, int b);
+    BMatcher(const Graph &G, count b);
 
     ~BMatcher() override = default;
 

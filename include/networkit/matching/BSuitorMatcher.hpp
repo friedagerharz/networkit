@@ -82,7 +82,7 @@ public:
 private:
     std::vector<std::vector<node>> suitors;
     std::vector<std::vector<node>> proposed;
-    const int b;
+    const count b;
 
     /**
      * Finds the index of the first @c none value in the list of @a nodes if present, otherwise @c
