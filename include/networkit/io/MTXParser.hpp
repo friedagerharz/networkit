@@ -18,6 +18,8 @@ namespace NetworKit {
 class MTXParser final {
 
     std::ifstream graphFile;
+    std::string currentLine;
+    bool hasLine;
 
 public:
     enum class Object { Matrix, Vector };

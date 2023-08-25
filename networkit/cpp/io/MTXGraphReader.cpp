@@ -12,9 +12,12 @@ Graph MTXGraphReader::read(const std::string &path) {
     auto header = parser.getHeader();
     auto size = parser.getMatrixSize();
     auto weighted = true;
+    auto symmetric = true;
 
     if (header.field == MTXParser::Field::Pattern)
         weighted = false;
+    if (header.symmetry == MTXParser::Symmetry::General)
+        symmetric = false;
 
     Graph G(std::max(size.rows, size.columns), weighted);
     std::string graphName =
@@ -25,10 +28,19 @@ Graph MTXGraphReader::read(const std::string &path) {
         auto from = std::get<0>(edge);
         auto to = std::get<1>(edge);
         auto weight = std::get<2>(edge);
-        weight.has_value() ? G.addPartialEdge(unsafe, from, to, *weight)
-                           : G.addPartialEdge(unsafe, from, to);
+        if (weighted && symmetric) {
+            G.addPartialEdge(unsafe, from, to, *weight);
+            G.addPartialEdge(unsafe, to, from, *weight);
+        } else if (weighted && !symmetric) {
+            G.addPartialEdge(unsafe, from, to, *weight);
+        } else if (!weighted && symmetric) {
+            G.addPartialEdge(unsafe, from, to);
+            G.addPartialEdge(unsafe, to, from);
+        } else {
+            G.addPartialEdge(unsafe, from, to);
+        }
     }
     return G;
-}
+} // namespace NetworKit
 
 } /* namespace NetworKit */

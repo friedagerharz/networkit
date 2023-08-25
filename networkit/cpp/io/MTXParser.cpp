@@ -90,23 +90,26 @@ MTXParser::MatrixSize MTXParser::getMatrixSize() {
 }
 
 bool MTXParser::hasNext() {
-    // if graph file has lines left, return true
-    return this->graphFile.good();
+    if (!this->hasLine) {
+        this->hasLine = static_cast<bool>(std::getline(this->graphFile, this->currentLine));
+    }
+    return this->hasLine;
 }
 
 std::tuple<node, node, std::optional<double>> MTXParser::getNext(bool weighted) {
+    if (!this->hasLine)
+        throw std::runtime_error("No more lines to be read.");
 
-    std::string line;
     do {
-        std::getline(this->graphFile, line);
+        this->hasLine = false;
         // check for comment line starting with '%'
-        if (line[0] == '%') {
+        if (this->currentLine[0] == '%') {
             continue;
         } else {
-            return parseLine(line, weighted);
+            return parseLine(this->currentLine, weighted);
         }
     } while (true);
-
+    this->hasLine = false;
     throw std::runtime_error("Invalid MTX file structure.");
 }
 
