@@ -57,6 +57,14 @@ public:
         MatrixSize(count r, count c, count nz) : rows(r), columns(c), nonzeros(nz) {}
     };
 
+    struct Edge {
+        node from;
+        node to;
+        std::optional<double> weight;
+
+        Edge(node f, node t, std::optional<double> w) : from(f), to(t), weight(w) {}
+    };
+
     MTXParser(const std::string &path);
 
     /**
@@ -78,9 +86,9 @@ public:
      * Get the (weighted) edge from the next line in the MTX graph file.
      *
      * @param weighted
-     * @return std::tuple<node, node, std::optional<double>>
+     * @return Edge
      */
-    std::tuple<node, node, std::optional<double>> getNext(bool weighted);
+    Edge getNext(bool weighted);
 };
 } /* namespace NetworKit */
 #endif // NETWORKIT_IO_MTX_PARSER_HPP_

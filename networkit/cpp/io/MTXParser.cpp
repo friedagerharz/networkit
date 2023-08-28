@@ -10,8 +10,7 @@ namespace NetworKit {
 /**
  * Extract a (weighted) edge from a line in the file.
  */
-static std::tuple<node, node, std::optional<double>> parseLine(const std::string &line,
-                                                               const bool weighted) {
+MTXParser::Edge parseLine(const std::string &line, const bool weighted) {
     node i, j;
     std::optional<double> value;
     std::istringstream istring(line);
@@ -24,7 +23,7 @@ static std::tuple<node, node, std::optional<double>> parseLine(const std::string
         if (istring >> tmp)
             value = tmp;
     }
-    return std::tuple<node, node, std::optional<double>>(i, j, value);
+    return MTXParser::Edge(i, j, value);
 }
 
 MTXParser::MTXParser(const std::string &path) : graphFile(path) {
@@ -96,7 +95,7 @@ bool MTXParser::hasNext() {
     return this->hasLine;
 }
 
-std::tuple<node, node, std::optional<double>> MTXParser::getNext(bool weighted) {
+MTXParser::Edge MTXParser::getNext(bool weighted) {
     if (!this->hasLine)
         throw std::runtime_error("No more lines to be read.");
 
@@ -104,7 +103,10 @@ std::tuple<node, node, std::optional<double>> MTXParser::getNext(bool weighted) 
         this->hasLine = false;
         // check for comment line starting with '%'
         if (this->currentLine[0] == '%') {
-            continue;
+            if (hasNext())
+                continue;
+            else
+                throw std::runtime_error("No more lines to be read.");
         } else {
             return parseLine(this->currentLine, weighted);
         }

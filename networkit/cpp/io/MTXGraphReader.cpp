@@ -24,10 +24,8 @@ Graph MTXGraphReader::read(const std::string &path) {
         Aux::StringTools::split(Aux::StringTools::split(path, '/').back(), '.').front();
 
     while (parser.hasNext()) {
-        auto edge = parser.getNext(weighted);
-        auto from = std::get<0>(edge);
-        auto to = std::get<1>(edge);
-        auto weight = std::get<2>(edge);
+        const auto [from, to, weight] = parser.getNext(weighted);
+
         if (weighted && symmetric) {
             G.addPartialEdge(unsafe, from, to, *weight);
             G.addPartialEdge(unsafe, to, from, *weight);
