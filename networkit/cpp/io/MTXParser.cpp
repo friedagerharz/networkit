@@ -27,7 +27,7 @@ MTXParser::Edge parseLine(const std::string &line, const bool weighted) {
 }
 
 MTXParser::MTXParser(const std::string &path) : graphFile(path) {
-    if (!(this->graphFile)) {
+    if (!(graphFile)) {
         ERROR("invalid graph file: ", path);
         throw std::runtime_error("invalid graph file");
     }
@@ -45,8 +45,8 @@ MTXParser::MTXHeader MTXParser::getHeader() {
     std::string identifier, object, format, field, symmetry;
     std::string line;
 
-    Aux::enforceOpened(this->graphFile);
-    if (std::getline(this->graphFile, line)) {
+    Aux::enforceOpened(graphFile);
+    if (std::getline(graphFile, line)) {
         std::istringstream istring(line);
         if (!(istring >> identifier >> object >> format >> field >> symmetry)) {
             throw std::runtime_error("Invalid header format.");
@@ -73,10 +73,10 @@ MTXParser::MatrixSize MTXParser::getMatrixSize() {
     count rows, columns, nonzeros;
     std::string line;
 
-    Aux::enforceOpened(this->graphFile);
-    if (std::getline(this->graphFile, line)) {
+    Aux::enforceOpened(graphFile);
+    if (std::getline(graphFile, line)) {
         while (line[0] == '%') {
-            std::getline(this->graphFile, line);
+            std::getline(graphFile, line);
         }
         std::istringstream istring(line);
         if (!(istring >> rows >> columns >> nonzeros)) {
@@ -89,27 +89,27 @@ MTXParser::MatrixSize MTXParser::getMatrixSize() {
 }
 
 bool MTXParser::hasNext() {
-    if (!this->hasLine) {
-        this->hasLine = static_cast<bool>(std::getline(this->graphFile, this->currentLine));
+    if (!hasLine) {
+        hasLine = static_cast<bool>(std::getline(graphFile, currentLine));
     }
-    return this->hasLine;
+    return hasLine;
 }
 
 MTXParser::Edge MTXParser::getNext(bool weighted) {
-    if (!this->hasLine)
+    if (!hasLine)
         throw std::runtime_error("No more lines to be read.");
 
     do {
-        this->hasLine = false;
+        hasLine = false;
         // check for comment line starting with '%'
-        if (this->currentLine[0] == '%') {
+        if (currentLine[0] == '%') {
             throw std::runtime_error(
                 "Invalid MTX file structure. No comments allowed after size line.");
         } else {
-            return parseLine(this->currentLine, weighted);
+            return parseLine(currentLine, weighted);
         }
     } while (true);
-    this->hasLine = false;
+    hasLine = false;
     throw std::runtime_error("Invalid MTX file structure.");
 }
 
