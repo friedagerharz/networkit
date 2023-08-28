@@ -103,10 +103,8 @@ MTXParser::Edge MTXParser::getNext(bool weighted) {
         this->hasLine = false;
         // check for comment line starting with '%'
         if (this->currentLine[0] == '%') {
-            if (hasNext())
-                continue;
-            else
-                throw std::runtime_error("No more lines to be read.");
+            throw std::runtime_error(
+                "Invalid MTX file structure. No comments allowed after size line.");
         } else {
             return parseLine(this->currentLine, weighted);
         }
