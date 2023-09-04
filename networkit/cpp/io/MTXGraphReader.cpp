@@ -23,8 +23,10 @@ Graph MTXGraphReader::read(const std::string &path) {
     std::string graphName =
         Aux::StringTools::split(Aux::StringTools::split(path, '/').back(), '.').front();
 
-    while (parser.hasNext()) {
-        const auto [from, to, weight] = parser.getNext(weighted);
+    std::optional<MTXParser::Edge> current_edge = parser.getNext(weighted);
+
+    while (current_edge.has_value()) {
+        const auto [from, to, weight] = current_edge.value();
 
         if (weighted && symmetric) {
             G.addPartialEdge(unsafe, from, to, *weight);
@@ -37,6 +39,8 @@ Graph MTXGraphReader::read(const std::string &path) {
         } else {
             G.addPartialEdge(unsafe, from, to);
         }
+
+        current_edge = parser.getNext(weighted);
     }
     return G;
 } // namespace NetworKit

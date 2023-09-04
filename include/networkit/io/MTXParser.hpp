@@ -78,17 +78,12 @@ public:
     MatrixSize getMatrixSize();
 
     /**
-     * Test if graph file has a next line.
-     */
-    bool hasNext();
-
-    /**
-     * Get the (weighted) edge from the next line in the MTX graph file.
+     * Get the (weighted) edge from the next line in the MTX graph file if present.
      *
      * @param weighted
-     * @return Edge
+     * @return std::optional<Edge>
      */
-    Edge getNext(bool weighted);
+    std::optional<Edge> getNext(bool weighted);
 };
 } /* namespace NetworKit */
 #endif // NETWORKIT_IO_MTX_PARSER_HPP_

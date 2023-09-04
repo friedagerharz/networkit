@@ -88,29 +88,21 @@ MTXParser::MatrixSize MTXParser::getMatrixSize() {
     }
 }
 
-bool MTXParser::hasNext() {
-    if (!hasLine) {
-        hasLine = static_cast<bool>(std::getline(graphFile, currentLine));
-    }
-    return hasLine;
-}
-
-MTXParser::Edge MTXParser::getNext(bool weighted) {
-    if (!hasLine)
-        throw std::runtime_error("No more lines to be read.");
+std::optional<MTXParser::Edge> MTXParser::getNext(bool weighted) {
+    std::string line;
 
     do {
-        hasLine = false;
+        auto hasLine = static_cast<bool>(std::getline(graphFile, line));
+        if (!hasLine)
+            return {};
         // check for comment line starting with '%'
-        if (currentLine[0] == '%') {
+        if (line[0] == '%') {
             throw std::runtime_error(
                 "Invalid MTX file structure. No comments allowed after size line.");
         } else {
-            return parseLine(currentLine, weighted);
+            return parseLine(line, weighted);
         }
     } while (true);
-    hasLine = false;
-    throw std::runtime_error("Invalid MTX file structure.");
 }
 
 } /* namespace NetworKit */
