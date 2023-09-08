@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 namespace NetworKit {
-
 BSuitorMatcher::BSuitorMatcher(const Graph &G, const std::vector<count> &b) : BMatcher(G, b), b(b) {
     if (G.numberOfSelfLoops() > 0)
         throw std::runtime_error("This algorithm does not support graphs with self-loops.");
@@ -26,12 +25,19 @@ BSuitorMatcher::BSuitorMatcher(const Graph &G, const std::string &path)
 void BSuitorMatcher::findSuitors(node u) {
     for (count i = 0; i < b.at(u); i++) {
         auto x = findPreferred(u);
-        if (x != none)
+        if (x != none) {
+            // auto t1 = high_resolution_clock::now();
             makeSuitor(u, x);
+            // auto t2 = high_resolution_clock::now();
+            // std::cout << "              (BSuitorMatcher::findSuitors) done after "
+            //           << duration_cast<seconds>(t2 - t1).count() << "s\n";
+        }
     }
 }
 
 node BSuitorMatcher::findPreferred(node y) {
+    // auto t1 = high_resolution_clock::now();
+
     node x = none;
     edgeweight heaviest = 0;
 
@@ -52,10 +58,15 @@ node BSuitorMatcher::findPreferred(node y) {
             }
         }
     }
+    // auto t2 = high_resolution_clock::now();
+    // std::cout << "      (BSuitorMatcher::findPreferred) done after "
+    //           << duration_cast<seconds>(t2 - t1).count() << "s\n";
+
     return x;
 }
 
 void BSuitorMatcher::makeSuitor(node u, node x) {
+
     auto y = suitors[x].back();
     sortInsert(suitors[x], x, u);
     auto i = findFirstFreeIndex(proposed[u]);
@@ -139,6 +150,9 @@ void BSuitorMatcher::checkSymmetry() const {
 }
 
 void BSuitorMatcher::run() {
+
+    // auto t1 = high_resolution_clock::now();
+
     const auto n = G->upperNodeIdBound();
     for (index i = 0; i < n; i++) {
         auto v = std::vector<node>(b.at(i), none);
@@ -146,8 +160,21 @@ void BSuitorMatcher::run() {
         proposed.emplace_back(v);
     }
 
+    // auto t2 = high_resolution_clock::now();
+    // std::cout << "(BSuitorMatcher::run) Initialization done after "
+    //           << duration_cast<seconds>(t2 - t1).count() << "s\n";
+
     G->forNodes([&](node u) { findSuitors(u); });
+
+    // auto t3 = high_resolution_clock::now();
+    // std::cout << "(BSuitorMatcher::run) FindSuitors done after "
+    //           << duration_cast<seconds>(t3 - t2).count() << "s\n";
+
     checkSymmetry();
+
+    // auto t4 = high_resolution_clock::now();
+    // std::cout << "(BSuitorMatcher::run) CheckSymmetry done after "
+    //           << duration_cast<seconds>(t4 - t3).count() << "s\n";
 
     // TODO make parallel
     G->forNodes([&suitors = suitors, &M = M](node u) {
@@ -157,6 +184,11 @@ void BSuitorMatcher::run() {
             }
         }
     });
+
+    // auto t5 = high_resolution_clock::now();
+    // std::cout << "(BSuitorMatcher::run) Insertion into matching done after "
+    //           << duration_cast<seconds>(t5 - t4).count() << "s\n";
+
     hasRun = true;
 }
 } // namespace NetworKit

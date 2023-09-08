@@ -12,6 +12,7 @@
 #include <networkit/graph/GraphTools.hpp>
 #include <networkit/io/DibapGraphReader.hpp>
 #include <networkit/io/METISGraphReader.hpp>
+#include <networkit/io/MTXGraphReader.hpp>
 #include <networkit/matching/BMatcher.hpp>
 #include <networkit/matching/BMatching.hpp>
 #include <networkit/matching/BSuitorMatcher.hpp>
@@ -21,7 +22,16 @@
 #include <networkit/matching/PathGrowingMatcher.hpp>
 #include <networkit/matching/SuitorMatcher.hpp>
 
+#include <chrono>
+#include <iostream>
+
 namespace NetworKit {
+
+// using std::chrono::duration;
+// using std::chrono::duration_cast;
+using std::chrono::high_resolution_clock;
+using std::chrono::seconds;
+typedef std::chrono::duration<float, std::milli> dur;
 
 class MatcherGTest : public testing::Test {
 protected:
@@ -38,6 +48,26 @@ protected:
             if (!M.isMatched(e.u) && !M.isMatched(e.v))
                 return true;
         return false;
+    }
+
+    auto getTime() { return high_resolution_clock::now(); }
+
+    void writeMatching(BMatching M, Graph G, std::string file_name) {
+        auto matrix = M.getMatrix();
+        std::ofstream fout;
+        std::string path = file_name; //"matching_out/" + file_name + ".net";
+
+        fout.open(path.c_str(), std::ios::out);
+        if (fout.is_open()) {
+            fout << "*Vertices " << G.numberOfNodes() << std::endl;
+            fout << "*arcs" << std::endl;
+            for (int i = 0; i < G.numberOfNodes(); i++)
+                for (int j = 0; j < matrix[i].size(); j++)
+                    if (i > matrix[i][j])
+                        fout << i + 1 << " " << matrix[i][j] + 1 << " " << G.weight(i, matrix[i][j])
+                             << std::endl;
+        }
+        fout.close();
     }
 };
 
@@ -197,6 +227,39 @@ TEST_F(MatcherGTest, testSuitorMatcher) {
     }
 }
 
+TEST_F(MatcherGTest, REMOVE) {
+    auto start_time = getTime();
+    auto G = MTXGraphReader{}.read("input/large_graph/astro-ph.mtx");
+    G.removeSelfLoops();
+    G.removeMultiEdges();
+
+    auto reading_time = getTime();
+    dur t1 = high_resolution_clock::now() - reading_time;
+    std::cout << "Initialization Time: " << t1.count() << "s\n";
+
+    // Test suitor matcher
+    BSuitorMatcher sm(G, 2);
+    sm.run();
+
+    auto matching_time = getTime();
+    dur t2 = matching_time - reading_time;
+    dur t3 = matching_time - start_time;
+    std::cout << "Matching Time: " << t2.count() << "s\n";
+    std::cout << "Total Time: " << t3.count() << "s\n";
+
+    const auto M1 = sm.getBMatching();
+    EXPECT_TRUE(M1.isProper(G));
+    EXPECT_FALSE(hasUnmatchedNeighbors(G, M1));
+
+    std::cout << "Matching verified.\n";
+    auto before_weight_time = getTime();
+
+    std::cout << "Matching Weight: " << M1.weight(G) << std::endl;
+    auto weight_time = getTime();
+    dur t4 = weight_time - before_weight_time;
+    std::cout << "in : " << t4.count() << "s\n";
+}
+
 TEST_F(MatcherGTest, testBSuitorMatcherInvalidGraphDirected) {
     Graph G(10, true, true);
     EXPECT_THROW(BSuitorMatcher(G, 2), std::runtime_error);
@@ -220,6 +283,8 @@ TEST_F(MatcherGTest, testBSuitorMatcherTieBreaking) {
 
     EXPECT_TRUE(M.isProper(G));
     EXPECT_FALSE(hasUnmatchedNeighbors(G, M));
+
+    writeMatching(M, G, "tie");
 }
 
 TEST_F(MatcherGTest, testBSuitorMatcherEqualsSuitorMatcher) {
@@ -271,4 +336,44 @@ TEST_F(MatcherGTest, testBSuitorMatcherDifferentB) {
     EXPECT_TRUE(M.isProper(G));
     EXPECT_FALSE(hasUnmatchedNeighbors(G, M));
 }
+
+// TEST_F(MatcherGTest, testBSuitorMatcherExecutionTimeMeasurement) {
+//     auto start_time = getTime();
+//     auto G = MTXGraphReader{}.read("input/astro-ph.mtx");
+//     G.removeSelfLoops();
+//     G.removeMultiEdges();
+//     auto reading_time = getTime();
+//     std::cout << "Initialization Time: " << reading_time - start_time << "s\n";
+
+//     const int b = 2;
+//     BSuitorMatcher bsm(G, b);
+//     bsm.run();
+//     auto matching_time = getTime();
+//     std::cout << "Matching Time: " << matching_time - reading_time << "s\n";
+//     std::cout << "Total Time: " << matching_time - start_time << "s\n";
+
+//     const auto M = bsm.getBMatching();
+//     EXPECT_TRUE(M.isProper(G));
+//     std::cout << "Matching verified.\n";
+
+//     std::cout << "Matching Weight: " << M.weight(G) << std::endl;
+
+//     // Matching output:
+
+//     // auto matrix = M.getMatrix();
+//     // std::ofstream fout;
+//     // fout.open("matching.net", std::ios::out);
+//     // if (fout.is_open()) {
+//     //     fout << "*Vertices " << G.numberOfNodes() << std::endl;
+//     //     fout << "*arcs" << std::endl;
+//     //     for (int i = 0; i < G.numberOfNodes(); i++)
+//     //         for (int j = 0; j < matrix[i].size(); j++)
+//     //             if (i > matrix[i][j])
+//     //                 fout << i + 1 << " " << matrix[i][j] + 1 << " " << G.weight(i,
+//     matrix[i][j])
+//     //                      << std::endl;
+//     // }
+//     // fout.close();
+// }
+
 } // namespace NetworKit

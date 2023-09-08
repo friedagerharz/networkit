@@ -1,11 +1,15 @@
 #ifndef NETWORKIT_MATCHING_B_SUITOR_MATCHER_HPP_
 #define NETWORKIT_MATCHING_B_SUITOR_MATCHER_HPP_
 
+#include <chrono>
 #include <networkit/graph/Graph.hpp>
 #include <networkit/matching/BMatcher.hpp>
 
 namespace NetworKit {
-
+using std::chrono::duration;
+using std::chrono::duration_cast;
+using std::chrono::high_resolution_clock;
+using std::chrono::seconds;
 /**
  * @ingroup matching
  * B-Suitor matching finding algorithm.
