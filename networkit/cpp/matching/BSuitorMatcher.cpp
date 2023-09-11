@@ -49,6 +49,7 @@ node BSuitorMatcher::findPreferred(node y) {
         if (!hasProposedTo(v.first)) {
             const edgeweight weight = v.second;
             if (weight > heaviest || (weight == heaviest && v.first < x)) {
+                // G-> iterator ueber nachbarknoten inkl gewichte
                 if (weight > G->weight(v.first, suitors[v.first].back())
                     || (weight == G->weight(v.first, suitors[v.first].back())
                         && y < suitors[v.first].back())) {
