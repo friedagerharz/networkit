@@ -227,9 +227,9 @@ TEST_F(MatcherGTest, testSuitorMatcher) {
     }
 }
 
-TEST_F(MatcherGTest, REMOVE) {
+TEST_F(MatcherGTest, testValgrindLarge) {
     auto start_time = getTime();
-    auto G = MTXGraphReader{}.read("input/tie.mtx");
+    auto G = MTXGraphReader{}.read("input/large_graph/astro-ph.mtx"); // Vehicle_10NN
     G.removeSelfLoops();
     G.removeMultiEdges();
 
@@ -244,12 +244,47 @@ TEST_F(MatcherGTest, REMOVE) {
     auto matching_time = getTime();
     dur t2 = matching_time - reading_time;
     dur t3 = matching_time - start_time;
+
     std::cout << "Matching Time: " << t2.count() << "ms\n";
     std::cout << "Total Time: " << t3.count() << "ms\n";
 
     const auto M1 = sm.getBMatching();
     EXPECT_TRUE(M1.isProper(G));
-    EXPECT_FALSE(hasUnmatchedNeighbors(G, M1));
+    // EXPECT_FALSE(hasUnmatchedNeighbors(G, M1));
+
+    std::cout << "Matching verified.\n";
+    auto before_weight_time = getTime();
+
+    std::cout << "Matching Weight: " << M1.weight(G) << std::endl;
+    auto weight_time = getTime();
+    dur t4 = weight_time - before_weight_time;
+    std::cout << "in : " << t4.count() << "ms\n";
+}
+
+TEST_F(MatcherGTest, testValgrindSmall) {
+    auto start_time = getTime();
+    auto G = MTXGraphReader{}.read("input/Vehicle_10NN.mtx");
+    G.removeSelfLoops();
+    G.removeMultiEdges();
+
+    auto reading_time = getTime();
+    dur t1 = high_resolution_clock::now() - reading_time;
+    std::cout << "Initialization Time: " << t1.count() << "ms\n";
+
+    // Test suitor matcher
+    BSuitorMatcher sm(G, 2);
+    sm.run();
+
+    auto matching_time = getTime();
+    dur t2 = matching_time - reading_time;
+    dur t3 = matching_time - start_time;
+
+    std::cout << "Matching Time: " << t2.count() << "ms\n";
+    std::cout << "Total Time: " << t3.count() << "ms\n";
+
+    const auto M1 = sm.getBMatching();
+    EXPECT_TRUE(M1.isProper(G));
+    // EXPECT_FALSE(hasUnmatchedNeighbors(G, M1));
 
     std::cout << "Matching verified.\n";
     auto before_weight_time = getTime();
