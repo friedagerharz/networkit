@@ -105,18 +105,24 @@ std::vector<count> BSuitorMatcher::readBValuesFromFile(count size, const std::st
 }
 
 bool BSuitorMatcher::isSymmetrical() const {
-    bool sym;
-    auto areMatchedSymmetrical = [&](node u, node v) -> void {
+    bool sym = true;
+    auto areMatchedSymmetrical = [&](node u, node v) -> bool {
         auto i_1 = std::find_if(S.at(u)->list.begin(), S.at(u)->list.end(),
                                 [v](const Node &p) { return p.id == v; })
                    != S.at(u)->list.end();
         auto i_2 = std::find_if(S.at(v)->list.begin(), S.at(v)->list.end(),
                                 [u](const Node &p) { return p.id == u; })
                    != S.at(v)->list.end();
-        sym = (i_1 == i_2);
+        return (i_1 == i_2);
     };
 
-    G->forNodes([&](node u) { G->forNodes([&](node v) { areMatchedSymmetrical(u, v); }); });
+    G->forNodes([&](node u) {
+        G->forNodes([&](node v) {
+            if (!areMatchedSymmetrical(u, v)) {
+                sym = false;
+            }
+        });
+    });
     return sym;
 }
 
@@ -124,8 +130,8 @@ edgeweight BSuitorMatcher::getWeight() const {
     edgeweight w = 0.0;
 
 #pragma omp parallel for reduction(+ : w)
-    for (auto s : S) {
-        w += s->weight;
+    for (int i = 0; i < S.size(); i++) {
+        w += S.at(i)->weight;
     }
     return w;
 }

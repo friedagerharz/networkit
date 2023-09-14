@@ -74,7 +74,7 @@ struct Data {
 
     void sort() {
         std::sort(list.begin(), list.end(), [](const Node &u, const Node &v) {
-            return (u.weight > v.weight || (u.weight == v.weight) && u.id < v.id);
+            return (u.weight > v.weight || (u.weight == v.weight && u.id < v.id));
         });
     }
 };
@@ -86,8 +86,8 @@ struct Suitors : public Data {
         edgeweight w = 0.0;
 
 #pragma omp parallel for reduction(+ : w)
-        for (auto e : list) {
-            w += e.weight;
+        for (int i = 0; i < list.size(); i++) {
+            w += list.at(i).weight;
         }
         return w;
     }
