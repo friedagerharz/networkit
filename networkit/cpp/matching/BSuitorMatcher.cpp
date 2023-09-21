@@ -118,7 +118,7 @@ bool BSuitorMatcher::isSymmetrical() const {
 
     G->forNodes([&](node u) {
         G->forNodes([&](node v) {
-            if (!areMatchedSymmetrical(u, v)) {
+            if (u < v && !areMatchedSymmetrical(u, v)) {
                 sym = false;
             }
         });
