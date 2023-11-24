@@ -54,15 +54,15 @@ count BMatching::size(const Graph &G) const {
 }
 
 edgeweight BMatching::weight(const Graph &G) const {
-    return G.parallelSumForNodes([&](node v) {
-        edgeweight weight_per_node = 0.0;
+    edgeweight weight = 0.0;
+    G.forNodes([&](node v) {
         for (auto u : matches.at(v)) {
             if (v < u) {
-                weight_per_node += G.weight(v, u);
+                weight += G.weight(v, u);
             }
         }
-        return weight_per_node;
     });
+    return weight;
 }
 
 const std::vector<std::set<node>> &BMatching::getMatches() const {
